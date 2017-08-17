@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -34,23 +34,29 @@ namespace AspNetCore2
             }
         }
 
-        private static Task StartWebServerAsync(ILifetimeScope scope)
+        private static async Task StartWebServerAsync(ILifetimeScope scope)
         {
             Console.WriteLine(" ==> Creating Web Host Scope");
-            var webHostScope = scope.BeginLifetimeScope(builder => builder.RegisterType<Startup>().AsSelf());
 
-            return WebHost
-                .CreateDefaultBuilder()
-                .UseStartup<Startup>()
-                .ConfigureLogging(builder => builder.SetMinimumLevel(LogLevel.Warning))
-                .ConfigureServices(services => services.AddTransient(provider => webHostScope.Resolve<Startup>()))
-                .Build()
-                .RunAsync()
-                .ContinueWith(t =>
-                {
-                    Console.WriteLine(" <== Disposing of Web Host Scope");
-                    webHostScope.Dispose();
-                });
+            using (var webHostScope = scope.BeginLifetimeScope(builder => builder.RegisterType<Startup>().AsSelf()))
+            {
+                await WebHost
+                    .CreateDefaultBuilder()
+                    .UseStartup<Startup>()
+                    .ConfigureLogging(builder => builder.SetMinimumLevel(LogLevel.Warning))
+                    .ConfigureServices(services => services.AddTransient(provider =>
+                    {
+                        var hostingEnv = provider.GetRequiredService<IHostingEnvironment>();
+                        var config = provider.GetRequiredService<IConfiguration>();
+                        var factory = webHostScope.Resolve<Func<IHostingEnvironment, IConfiguration, Startup>>();
+
+                        return factory(hostingEnv, config);
+                    }))
+                    .Build()
+                    .RunAsync();
+
+                Console.WriteLine(" <== Disposing of Web Host Scope");
+            }
         }
 
         private static void StartOtherStuffAsync(ILifetimeScope scope)

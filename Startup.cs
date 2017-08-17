@@ -7,6 +7,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AspNetCore2
@@ -16,7 +17,7 @@ namespace AspNetCore2
         private readonly ILifetimeScope _webHostScope;
         private ILifetimeScope _aspNetScope;
 
-        public Startup(ILifetimeScope webHostScope)
+        public Startup(ILifetimeScope webHostScope, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             _webHostScope = webHostScope ?? throw new ArgumentNullException(nameof(webHostScope));
         }
@@ -36,7 +37,7 @@ namespace AspNetCore2
         {
             app.UseMvc();
 
-            appLifetime.ApplicationStopping.Register(() =>
+            appLifetime.ApplicationStopped.Register(() =>
             {
                 Console.WriteLine(" <== Disposing of ASP.NET Scope");
                 _aspNetScope.Dispose();
