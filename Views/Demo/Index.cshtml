@@ -1,0 +1,8 @@
+﻿@using Microsoft.AspNetCore.Mvc
+@model AspNetCore2.MySingleton
+
+<div>Singleton creation date: @Model.CreationDate</div>
+
+<form action="@Url.Action("Restart")" method="post">
+    <button type="submit">Restart</button>
+</form>
