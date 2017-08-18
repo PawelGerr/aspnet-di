@@ -11,9 +11,9 @@ namespace AspNetCore2
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            StartWebAppAsync().GetAwaiter().GetResult();
+            await StartWebAppAsync();
         }
 
         private static async Task StartWebAppAsync()
