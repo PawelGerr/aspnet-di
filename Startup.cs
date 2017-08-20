@@ -39,8 +39,9 @@ namespace AspNetCore2
 
             appLifetime.ApplicationStopped.Register(() =>
             {
-                Console.WriteLine(" <== Disposing of ASP.NET Scope");
+                Console.WriteLine($" <== {DateTime.Now} ASP.NET Scope disposing");
                 _aspNetScope.Dispose();
+                Console.WriteLine($" <== {DateTime.Now} ASP.NET Scope disposed");
             });
         }
     }

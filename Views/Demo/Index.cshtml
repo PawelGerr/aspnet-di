@@ -6,3 +6,56 @@
 <form action="@Url.Action("Restart")" method="post">
     <button type="submit">Restart</button>
 </form>
+
+<div>
+    <label for="blockingDuration">Delay:</label> <input id="blockingDuration" type="text" value="00:00:05" />
+</div>
+<div>
+    <button onclick="cancellationTest.startRequest('CancelOnServerShutdown')">Trigger "CancelOnServerShutdown"</button>
+    <button onclick="cancellationTest.startRequest('CancelOnRequestAborted')">Trigger "CancelOnRequestAborted"</button>
+    <button onclick="cancellationTest.startRequest('CancelByCancellationToken')">Trigger "CancelByCancellationToken"</button>
+</div>
+<div>
+    <button onclick="cancellationTest.abortRequest()">Abort Request</button>
+</div>
+
+<br/>
+<div>
+    <strong>Output</strong>
+    <pre id="output"></pre>
+</div>
+
+<script>
+    window.output = document.getElementById('output');
+
+    window.writeLine = function (text) {
+        output.innerHTML += text + '\n\r';
+    };
+
+    window.doGetRequest = function (url) {
+        var req = cancellationTest.request = new XMLHttpRequest();
+        req.open('GET', url);
+        req.addEventListener('load', function (event) {
+            writeLine(req.status + ': ' + req.responseText);
+        });
+        req.send();
+        writeLine('GET ' + url);
+
+        return req;
+    }
+
+    window.cancellationTest = {
+        request: null,
+        startRequest: function (operationName) {
+            cancellationTest.abortRequest();
+            cancellationTest.request = doGetRequest('http://localhost:56560/' + operationName+'?time=' + document.getElementById('blockingDuration').value);
+        },
+        abortRequest: function () {
+            if (cancellationTest.request) {
+                cancellationTest.request.abort();
+                cancellationTest.request = null;
+                writeLine('Request aborted.');
+            }
+        }
+    };
+</script>

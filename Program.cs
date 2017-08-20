@@ -38,8 +38,14 @@ namespace AspNetCore2
         {
             Console.WriteLine(" ==> Creating Web Host Scope");
 
-            using (var webHostScope = scope.BeginLifetimeScope(builder => builder.RegisterType<Startup>().AsSelf()))
+            using (var webHostScope = scope.BeginLifetimeScope(builder =>
             {
+                builder.RegisterType<Startup>().AsSelf();
+                builder.RegisterType<MyComponent>().AsSelf().SingleInstance();
+            }))
+            {
+                var component = webHostScope.Resolve<MyComponent>();
+
                 await WebHost
                     .CreateDefaultBuilder()
                     .UseStartup<Startup>()
@@ -55,8 +61,9 @@ namespace AspNetCore2
                     .Build()
                     .RunAsync();
 
-                Console.WriteLine(" <== Disposing of Web Host Scope");
+                Console.WriteLine($" <== {DateTime.Now} Web Host Scope disposing");
             }
+            Console.WriteLine($" <== {DateTime.Now} Web Host Scope disposed");
         }
 
         private static void StartOtherStuffAsync(ILifetimeScope scope)
